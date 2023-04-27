@@ -1,6 +1,6 @@
 # Run the simulation
 
-1. git clone
+1. git clone https://github.com/saifulhaq8/branchpredictor
 2. ./run.sh
 
 # Evaluate the simulation
