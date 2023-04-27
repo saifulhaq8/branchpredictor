@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# ./build_champsim.sh tage no no no no lru 1
-# ./build_champsim.sh hashed_perceptron no no no no lru 1
-# ./build_champsim.sh tage_gshare_tour no no no no lru 1
-# ./build_champsim.sh tage_hashed_tour no no no no lru 1
-# ./build_champsim.sh tage_hashed_bimod_tour no no no no lru 1
+./build_champsim.sh tage no no no no lru 1
+./build_champsim.sh hashed_perceptron no no no no lru 1
+./build_champsim.sh tage_gshare_tour no no no no lru 1
+./build_champsim.sh tage_hashed_tour no no no no lru 1
+./build_champsim.sh tage_hashed_bimod_tour no no no no lru 1
 
 ./run_champsim.sh tage-no-no-no-no-lru-1core 10 10 cadical-low-60K-1186B.champsimtrace.xz
 ./run_champsim.sh tage-no-no-no-no-lru-1core 10 10 cadical-med-30K-109B.champsimtrace.xz
