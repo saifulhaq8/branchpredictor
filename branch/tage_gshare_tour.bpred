@@ -1,0 +1,41 @@
+#include <ooo_cpu.h>
+#include "gshare.h"
+#include "tage.h"
+
+Gshare gshare_predictor[NUM_CPUS];
+Tage tage_predictor[NUM_CPUS];
+int tournament_counter[NUM_CPUS];
+
+void O3_CPU::initialize_branch_predictor()
+{
+    gshare_predictor[cpu].init();
+    tage_predictor[cpu].init();
+    tournament_counter[cpu] = 0;
+}
+
+uint8_t O3_CPU::predict_branch(uint64_t ip)
+{
+    uint8_t gshare_pred = gshare_predictor[cpu].predict(ip);
+    uint8_t tage_pred = tage_predictor[cpu].predict(ip);
+    uint8_t tournament_pred = (tournament_counter[cpu] >= 2) ? tage_pred : gshare_pred;
+    return tournament_pred;
+}
+
+void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
+{
+    gshare_predictor[cpu].update(ip, taken);
+    tage_predictor[cpu].update(ip, taken);
+    uint8_t gshare_pred = gshare_predictor[cpu].predict(ip);
+    uint8_t tage_pred = tage_predictor[cpu].predict(ip);
+    if (gshare_pred == taken && tage_pred == taken) {
+        // Both predictors agree, do nothing
+    } else if (gshare_pred == taken) {
+        // Gshare predictor was correct, decrement tournament counter
+        tournament_counter[cpu] = std::max(0, tournament_counter[cpu] - 1);
+    } else if (tage_pred == taken) {
+        // TAGE predictor was correct, increment tournament counter
+        tournament_counter[cpu] = std::min(3, tournament_counter[cpu] + 1);
+    } else {
+        // Both predictors were wrong, do nothing
+    }
+}

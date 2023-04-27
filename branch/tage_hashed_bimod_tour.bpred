@@ -1,0 +1,59 @@
+#include <ooo_cpu.h>
+#include "tage.h"
+#include "hashed_perceptron.h"
+
+#define BIMODAL_TABLE_SIZE 16384
+#define BIMODAL_PRIME 16381
+#define MAX_COUNTER 3
+int bimodal_table[NUM_CPUS][BIMODAL_TABLE_SIZE];
+
+Tage tage_predictor[NUM_CPUS];
+int tournament_counter[NUM_CPUS];
+HashedPerceptron hashedperceptron_predictor[NUM_CPUS];
+
+void O3_CPU::initialize_branch_predictor()
+{
+    tage_predictor[cpu].init();
+    hashedperceptron_predictor[cpu].init();
+    tournament_counter[cpu] = 0;
+    for(int i = 0; i < BIMODAL_TABLE_SIZE; i++)
+        bimodal_table[cpu][i] = 0;
+}
+
+uint8_t O3_CPU::predict_branch(uint64_t ip)
+{
+    uint8_t hashedperceptron_pred = hashedperceptron_predictor[cpu].predict(ip);
+    uint8_t tage_pred = tage_predictor[cpu].predict(ip);
+    uint32_t hash = ip % BIMODAL_PRIME;
+
+    uint8_t tournament_pred = (bimodal_table[cpu][hash] >= ((MAX_COUNTER + 1)/2)) ? tage_pred: hashedperceptron_pred ;
+
+    return tournament_pred;
+
+}
+
+void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
+{
+
+    uint8_t hashedperceptron_pred = hashedperceptron_predictor[cpu].predict(ip);
+    uint8_t tage_pred = tage_predictor[cpu].predict(ip);
+
+    uint32_t hash = ip % BIMODAL_PRIME;
+
+
+    if (hashedperceptron_pred == taken && tage_pred == taken) {
+        // Both predictors agree, do nothing
+    } 
+    else if (hashedperceptron_pred == taken) {
+        tournament_counter[cpu] = std::max(0, bimodal_table[cpu][hash]--);
+    } else if (tage_pred == taken) {
+        // TAGE predictor was correct, increment tournament counter
+        tournament_counter[cpu] = std::min(3, bimodal_table[cpu][hash]++);
+    } else {
+        // Both predictors were wrong, do nothing
+    }
+
+    hashedperceptron_predictor[cpu].update(ip, taken);
+    tage_predictor[cpu].update(ip, taken);
+
+}
