@@ -14,10 +14,10 @@
 2. Download the trace files, create "dpc3_traces" directory and put them inside it.
 3. ./run.sh
 
-You find the results inside "Results_10" and "Results_30"
+You can find the results inside "Results_10" and "Results_30"
 
 # Evaluate the simulation
 
 1. python results.py
 
-You will find the tables containing MKPI and IPC in the "results" directory.
+You can find the tables containing MKPI and IPC in the "results" directory.
